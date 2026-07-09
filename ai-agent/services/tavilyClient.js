@@ -58,7 +58,7 @@ export async function searchNews(query, options = {}) {
 const isDirectRun = path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1] ?? "");
 
 if (isDirectRun) {
-    const { results, dataGap } = await searchNews("Tesla Inc TSLA latest news");
+    const { results, dataGap } = await searchNews("Tesla Inc TSLA latest news", { days: 90 });
 
     if (dataGap) {
         console.log("Search failed (recoverable):", dataGap);
