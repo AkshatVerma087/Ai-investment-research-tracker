@@ -1,25 +1,26 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import Groq from "groq-sdk";
-import { env } from "../config/env.js";
-import { ExternalAPIError } from "../errors/externalAPIError.js";
+import env, { requireEnv } from "../config/env.js";
+import { ExternalAPIError } from "../utils/errors.js";
 import { handleError } from "../utils/errorHandler.js";
 import { logger } from "../utils/logger.js";
 
-
 const DEFAULT_MODEL = "openai/gpt-oss-120b";
 
-
 let client = null;
+
 function getClient() {
-    if(!client) {
+    if (!client) {
+        requireEnv(["GROQ_API_KEY"]);
+
         client = new Groq({
             apiKey: env.GROQ_API_KEY
-        })
+        });
     }
 
     return client;
 }
-
-
 
 export async function callModel(messages, options = {}) {
     const {
@@ -34,52 +35,47 @@ export async function callModel(messages, options = {}) {
             model,
             messages,
             temperature,
-            ...(responseFormat === "json_object" ? { response_format: "json_object" } : {}),
-    
+            ...(responseFormat === "json_object"
+                ? { response_format: { type: "json_object" } }
+                : {}),
         });
 
+        const content = response?.choices?.[0]?.message?.content;
 
-        const content = response?.choices?.[0]?.messages?.content;
-
-        if(!content) {
-            throw new Error("Groq")
+        if (!content) {
+            throw new Error("Groq returned an empty response");
         }
 
         logger.info({
             msg: "llmClient.callModel succeeded",
             model,
             promptTokens: response?.usage?.prompt_tokens,
-            completionsTokens: response?.usage?.completion_tokens,
+            completionTokens: response?.usage?.completion_tokens,
         });
 
-
+        return content;
     } catch (error) {
-
-
         return handleError(
             new ExternalAPIError(error.message, {
                 code: "LLM_CLIENT_ERROR",
                 recoverable: false,
                 source: "Groq",
-                cause: error
+                cause: error,
             }),
             "llmClient.callModel"
         );
     }
+}
 
-    if(import.meta.url === `file://${process.argv[1]}`) {
+const isDirectRun = path.resolve(fileURLToPath(import.meta.url)) === path.resolve(process.argv[1] ?? "");
 
-        const test = async () => {
-            const reply = await callModel([
-                {
-                    role: "user",
-                    content: "What is the capital of France?"
-                }
-            ]);
+if (isDirectRun) {
+    const reply = await callModel([
+        {
+            role: "user",
+            content: "What is the capital of France?",
+        },
+    ]);
 
-            console.log("model replied: ", reply);
-        }
-
-        test();
-    }
+    console.log("model replied:", reply);
 }
