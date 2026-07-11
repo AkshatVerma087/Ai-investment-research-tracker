@@ -11,18 +11,25 @@
 // real double-run: at 0.2, finalScore drifted 4.0 -> 3.6 and weights shifted
 // (growth 0.25->0.20, risk 0.10->0.20) on byte-identical cached input.
 
+import crypto from "node:crypto";
 import { callModelForJson } from "../services/llmClient.js";
 import { buildDecisionPrompt, DECISION_CATEGORIES } from "../prompts/decisionPrompt.js";
 import { validateDecision } from "../utils/validators.js";
 import { ValidationError } from "../utils/errors.js";
 import { handleError } from "../utils/errorHandler.js";
 import { logger } from "../utils/logger.js";
+import { getFromCache, setCache } from "../services/cacheClient.js";
 
 // Fixed binary decision boundary. Change this number to retune risk appetite.
 const INVEST_THRESHOLD = 7.5;
+const DECISION_TTL_SECONDS = 60 * 60 * 24;
 
 function computeVerdict(finalScore) {
   return finalScore >= INVEST_THRESHOLD ? "Invest" : "Pass";
+}
+
+function hashPayload(payload) {
+  return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
 }
 
 export async function scoreAndDecide(state) {
@@ -34,6 +41,14 @@ export async function scoreAndDecide(state) {
         code: "MISSING_SYNTHESIS",
         source: "scoreAndDecide",
       });
+    }
+
+    const cachePayload = { resolvedCompany, synthesis };
+    const cacheKey = `decision:${hashPayload(cachePayload)}`;
+    const cached = await getFromCache(cacheKey);
+    if (cached) {
+      logger.info({ msg: "scoreAndDecide cache hit", key: cacheKey });
+      return cached;
     }
 
     const messages = buildDecisionPrompt(resolvedCompany, synthesis);
@@ -67,7 +82,7 @@ export async function scoreAndDecide(state) {
       confidence: parsed.confidence,
     });
 
-    return {
+    const decision = {
       scores: parsed.scores,
       weights: parsed.weights,
       verdict: {
@@ -79,6 +94,9 @@ export async function scoreAndDecide(state) {
       },
       confidence: parsed.confidence,
     };
+
+    await setCache(cacheKey, decision, DECISION_TTL_SECONDS);
+    return decision;
   } catch (err) {
     // A malformed decision is fatal: returning a wrong investment decision is
     // worse than stopping with a clear error.

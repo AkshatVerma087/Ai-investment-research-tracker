@@ -7,7 +7,7 @@
 // you touch.
 
 import Groq from "groq-sdk";
-import { env } from "../config/env.js";
+import env, { requireEnv } from "../config/env.js";
 import { ExternalAPIError } from "../utils/errors.js";
 import { handleError } from "../utils/errorHandler.js";
 import { logger } from "../utils/logger.js";
@@ -21,6 +21,7 @@ const DEFAULT_MODEL = "openai/gpt-oss-120b";
 let client = null;
 function getClient() {
   if (!client) {
+    requireEnv(["GROQ_API_KEY"]);
     client = new Groq({ apiKey: env.GROQ_API_KEY });
   }
   return client;
@@ -76,15 +77,15 @@ export async function callModel(messages, options = {}) {
     // Every failure path funnels through the same typed error + global handler.
     // LLM failures are NOT recoverable: if the model call fails, nothing
     // downstream (synthesis, scoring) can proceed, so this should stop the run.
-    return handleError(
-      new ExternalAPIError(err.message, {
-        code: "LLM_CALL_FAILED",
-        recoverable: false,
-        source: "groq",
-        cause: err,
-      }),
-      "llmClient.callModel"
-    );
+    const wrappedError = new ExternalAPIError(err.message, {
+      code: "LLM_CALL_FAILED",
+      recoverable: false,
+      source: "groq",
+      cause: err,
+    });
+
+    handleError(wrappedError, "llmClient.callModel");
+    throw wrappedError;
   }
 }
 
