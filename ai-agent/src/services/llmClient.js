@@ -55,15 +55,15 @@ export async function callModel(messages, options = {}) {
 
         return content;
     } catch (error) {
-        return handleError(
-            new ExternalAPIError(error.message, {
-                code: "LLM_CLIENT_ERROR",
-                recoverable: false,
-                source: "Groq",
-                cause: error,
-            }),
-            "llmClient.callModel"
-        );
+        const wrappedError = new ExternalAPIError(error.message, {
+            code: "LLM_CLIENT_ERROR",
+            recoverable: false,
+            source: "Groq",
+            cause: error,
+        });
+
+        handleError(wrappedError, "llmClient.callModel");
+        throw wrappedError;
     }
 }
 

@@ -13,7 +13,7 @@ export const AgentState = Annotation.Root({
 
     rawData: Annotation({
         reducer: (existing, update) => update ?? existing,
-        default: () => null,
+        default: () => ({}),
     }),
 
     cleanedData: Annotation({
@@ -46,7 +46,7 @@ export const AgentState = Annotation.Root({
         default: () => null 
     }),
 
-    dataGap: Annotation({
+    dataGaps: Annotation({
         reducer: (existing, update) => [...(existing ?? []), ...(update ?? [])],
         default: () => [],
     }),
