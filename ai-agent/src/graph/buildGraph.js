@@ -15,6 +15,7 @@ import { resolveCompany } from "../nodes/resolveCompany.js";
 import { fetchTavily } from "../nodes/fetchTavily.js";
 import { fetchFinancials } from "../nodes/fetchFinancials.js";
 import { fetchFilings } from "../nodes/fetchFilings.js";
+import { aggregateData } from "../nodes/aggregateData.js";
 
 export function buildGraph() {
   const graph = new StateGraph(AgentState)
@@ -22,6 +23,7 @@ export function buildGraph() {
     .addNode("fetchTavily", fetchTavily)
     .addNode("fetchFinancials", fetchFinancials)
     .addNode("fetchFilings", fetchFilings)
+    .addNode("aggregateData", aggregateData)
 
     .addEdge(START, "resolveCompany")
 
@@ -30,11 +32,13 @@ export function buildGraph() {
     .addEdge("resolveCompany", "fetchFinancials")
     .addEdge("resolveCompany", "fetchFilings")
 
-    // converge straight to END for now — aggregateData node gets inserted
-    // here in the next step, once this fan-out is verified working
-    .addEdge("fetchTavily", END)
-    .addEdge("fetchFinancials", END)
-    .addEdge("fetchFilings", END);
+     // fan-in: aggregateData waits for all three to finish
+    .addEdge("fetchTavily", "aggregateData")
+    .addEdge("fetchFinancials", "aggregateData")
+    .addEdge("fetchFilings", "aggregateData")
+
+    .addEdge("aggregateData", END);
+ 
 
   return graph.compile();
 }

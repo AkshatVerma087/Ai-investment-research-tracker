@@ -7,6 +7,8 @@
 // Three jobs: (1) strip low-signal/stale noise, (2) normalize into a
 // common shape, (3) surface data gaps explicitly rather than hiding them.
 
+import { logger } from "../utils/logger.js";
+
 // ---- News cleaning ----
 
 // Real Tavily results sometimes embed old, unrelated content inside an
@@ -120,6 +122,14 @@ export async function aggregateData(state) {
   const filings = cleanFilings(rawData.filings);
 
   const newGaps = [news.gap, financials.gap, filings.gap].filter(Boolean);
+
+  logger.info({
+    msg: "aggregateData succeeded",
+    newsItems: news.items.length,
+    filingsItems: filings.items.length,
+    hasFinancials: !!financials.summary,
+    newGaps,
+  });
 
   return {
     cleanedData: {
