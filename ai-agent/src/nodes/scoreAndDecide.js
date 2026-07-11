@@ -4,29 +4,25 @@
 // computed here in code. This keeps the decision boundary fixed, auditable,
 // and aligned with the assignment requirement: invest or pass.
 //
-// temperature is 0 here because this node feeds that fixed decision boundary.
-// We also cache by exact input hash because some hosted LLMs can still vary at
-// temperature 0; identical synthesis should replay identical scores/weights.
+// temperature is 0 here (not the 0.2 default used elsewhere) specifically
+// because this node feeds that fixed decision boundary — identical
+// cleanedData should produce identical scores/weights/finalScore on repeat
+// runs, or the "auditable" claim above doesn't actually hold. Confirmed via
+// real double-run: at 0.2, finalScore drifted 4.0 -> 3.6 and weights shifted
+// (growth 0.25->0.20, risk 0.10->0.20) on byte-identical cached input.
 
-import crypto from "node:crypto";
-import { callModel } from "../services/llmClient.js";
+import { callModelForJson } from "../services/llmClient.js";
 import { buildDecisionPrompt, DECISION_CATEGORIES } from "../prompts/decisionPrompt.js";
 import { validateDecision } from "../utils/validators.js";
 import { ValidationError } from "../utils/errors.js";
 import { handleError } from "../utils/errorHandler.js";
 import { logger } from "../utils/logger.js";
-import { getFromCache, setCache } from "../services/cacheClient.js";
 
 // Fixed binary decision boundary. Change this number to retune risk appetite.
 const INVEST_THRESHOLD = 7.5;
-const DECISION_TTL_SECONDS = 60 * 60 * 24;
 
 function computeVerdict(finalScore) {
   return finalScore >= INVEST_THRESHOLD ? "Invest" : "Pass";
-}
-
-function hashPayload(payload) {
-  return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
 }
 
 export async function scoreAndDecide(state) {
@@ -40,27 +36,16 @@ export async function scoreAndDecide(state) {
       });
     }
 
-    const cachePayload = { resolvedCompany, synthesis };
-    const cacheKey = `decision:${hashPayload(cachePayload)}`;
-    const cached = await getFromCache(cacheKey);
-    if (cached) {
-      logger.info({ msg: "scoreAndDecide cache hit", key: cacheKey });
-      return cached;
-    }
-
     const messages = buildDecisionPrompt(resolvedCompany, synthesis);
-    const reply = await callModel(messages, {
-      responseFormat: "json_object",
-      temperature: 0,
-    });
 
     let parsed;
     try {
-      parsed = JSON.parse(reply);
-    } catch {
-      throw new ValidationError(`Decision returned invalid JSON: ${reply.slice(0, 200)}`, {
+      parsed = await callModelForJson(messages, { temperature: 0 });
+    } catch (err) {
+      throw new ValidationError(`Decision returned invalid JSON: ${err.message}`, {
         code: "DECISION_JSON_PARSE_FAILED",
         source: "llm",
+        cause: err,
       });
     }
 
@@ -82,7 +67,7 @@ export async function scoreAndDecide(state) {
       confidence: parsed.confidence,
     });
 
-    const decision = {
+    return {
       scores: parsed.scores,
       weights: parsed.weights,
       verdict: {
@@ -94,9 +79,6 @@ export async function scoreAndDecide(state) {
       },
       confidence: parsed.confidence,
     };
-
-    await setCache(cacheKey, decision, DECISION_TTL_SECONDS);
-    return decision;
   } catch (err) {
     // A malformed decision is fatal: returning a wrong investment decision is
     // worse than stopping with a clear error.

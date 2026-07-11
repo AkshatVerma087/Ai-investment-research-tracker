@@ -5,7 +5,7 @@
 // drift from the LLM when the underlying research data has not changed.
 
 import crypto from "node:crypto";
-import { callModel } from "../services/llmClient.js";
+import { callModelForJson } from "../services/llmClient.js";
 import { buildSynthesisPrompt } from "../prompts/synthesisPrompt.js";
 import { validateSynthesis } from "../utils/validators.js";
 import { ValidationError } from "../utils/errors.js";
@@ -39,18 +39,15 @@ export async function synthesize(state) {
     }
 
     const messages = buildSynthesisPrompt(resolvedCompany, cleanedData);
-    const reply = await callModel(messages, {
-      responseFormat: "json_object",
-      temperature: 0,
-    });
 
     let parsed;
     try {
-      parsed = JSON.parse(reply);
-    } catch {
-      throw new ValidationError(`Synthesis returned invalid JSON: ${reply.slice(0, 200)}`, {
+      parsed = await callModelForJson(messages, { temperature: 0 });
+    } catch (err) {
+      throw new ValidationError(`Synthesis returned invalid JSON: ${err.message}`, {
         code: "SYNTHESIS_JSON_PARSE_FAILED",
         source: "llm",
+        cause: err,
       });
     }
 

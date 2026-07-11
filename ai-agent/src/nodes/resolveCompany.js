@@ -4,7 +4,7 @@
 // returns a partial update. Knows nothing about LangGraph itself — that's
 // the whole point of keeping nodes thin.
 
-import { callModel } from "../services/llmClient.js";
+import { callModelForJson } from "../services/llmClient.js";
 import { buildResolvePrompt } from "../prompts/resolvePrompt.js";
 import { validateResolvedCompany } from "../utils/validators.js";
 import { ResolutionError } from "../utils/errors.js";
@@ -26,15 +26,15 @@ export async function resolveCompany(state) {
     }
 
     const messages = buildResolvePrompt(companyInput);
-    const reply = await callModel(messages, { responseFormat: "json_object" });
 
     let parsed;
     try {
-      parsed = JSON.parse(reply);
-    } catch {
-      throw new ResolutionError(`Model returned invalid JSON: ${reply.slice(0, 200)}`, {
+      parsed = await callModelForJson(messages);
+    } catch (err) {
+      throw new ResolutionError(`Model returned invalid JSON: ${err.message}`, {
         code: "RESOLUTION_JSON_PARSE_FAILED",
         source: "llm",
+        cause: err,
       });
     }
 
