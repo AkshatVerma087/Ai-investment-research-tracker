@@ -17,6 +17,7 @@ import { fetchFinancials } from "../nodes/fetchFinancials.js";
 import { fetchFilings } from "../nodes/fetchFilings.js";
 import { aggregateData } from "../nodes/aggregateData.js";
 import { synthesize } from "../nodes/synthesize.js";
+import { scoreAndDecide } from "../nodes/scoreAndDecide.js";
 
 export function buildGraph() {
   const graph = new StateGraph(AgentState)
@@ -26,6 +27,7 @@ export function buildGraph() {
     .addNode("fetchFilings", fetchFilings)
     .addNode("aggregateData", aggregateData)
     .addNode("synthesize", synthesize)
+    .addNode("scoreAndDecide", scoreAndDecide)
 
     .addEdge(START, "resolveCompany")
 
@@ -40,6 +42,7 @@ export function buildGraph() {
     .addEdge("fetchFilings", "aggregateData")
 
     .addEdge("aggregateData", "synthesize")
+    .addEdge("synthesize", "scoreAndDecide")
     .addEdge("synthesize", END);
 
   return graph.compile();
