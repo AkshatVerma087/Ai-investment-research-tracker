@@ -1,11 +1,8 @@
 // nodes/scoreAndDecide.js
 //
-// The LLM provides scores (1-10 per category) and weights (summing to 1,
-// capped at 0.35 each) — but the THRESHOLD that turns a final_score into
-// Invest/Hold/Pass is hardcoded here, in code, not decided by the model.
-// This is the deliberate design choice from the decision theory: the
-// scoring inputs can be adaptive, but the decision boundary stays fixed
-// and auditable, so the model can't quietly shift what counts as "good enough."
+// The LLM provides scores and weights, but the final Invest/Pass decision is
+// computed here in code. This keeps the decision boundary fixed, auditable,
+// and aligned with the assignment requirement: invest or pass.
 
 import { callModel } from "../services/llmClient.js";
 import { buildDecisionPrompt, DECISION_CATEGORIES } from "../prompts/decisionPrompt.js";
@@ -14,15 +11,11 @@ import { ValidationError } from "../utils/errors.js";
 import { handleError } from "../utils/errorHandler.js";
 import { logger } from "../utils/logger.js";
 
-// Fixed decision boundary — change these two numbers to retune the whole
-// agent's risk appetite, without touching any prompt or LLM logic.
+// Fixed binary decision boundary. Change this number to retune risk appetite.
 const INVEST_THRESHOLD = 7.5;
-const PASS_THRESHOLD = 5.0; // below this = Pass; between this and INVEST_THRESHOLD = Hold
 
 function computeVerdict(finalScore) {
-  if (finalScore >= INVEST_THRESHOLD) return "Invest";
-  if (finalScore >= PASS_THRESHOLD) return "Hold";
-  return "Pass";
+  return finalScore >= INVEST_THRESHOLD ? "Invest" : "Pass";
 }
 
 export async function scoreAndDecide(state) {
@@ -54,9 +47,7 @@ export async function scoreAndDecide(state) {
 
     validateDecision(parsed, "scoreAndDecide");
 
-    // final_score is computed here in code, not trusted from the model —
-    // same reasoning as the verdict threshold: keep the arithmetic that
-    // determines the actual decision auditable and outside the LLM's control.
+    // Compute final score in code instead of trusting model arithmetic.
     const finalScore = DECISION_CATEGORIES.reduce(
       (sum, cat) => sum + parsed.scores[cat].value * parsed.weights[cat],
       0
@@ -78,16 +69,15 @@ export async function scoreAndDecide(state) {
       verdict: {
         verdict,
         finalScore: roundedScore,
-        thresholds: { invest: INVEST_THRESHOLD, pass: PASS_THRESHOLD },
+        thresholds: { invest: INVEST_THRESHOLD },
         weightRationale: parsed.weight_rationale,
         counterCase: parsed.counter_case,
       },
       confidence: parsed.confidence,
     };
   } catch (err) {
-    // Same reasoning as synthesize.js: a bad or malformed decision is worse
-    // than no decision, so both LLM failures and validation failures are
-    // fatal here — nothing "recoverable" about a wrong verdict.
+    // A malformed decision is fatal: returning a wrong investment decision is
+    // worse than stopping with a clear error.
     return handleError(
       err instanceof ValidationError
         ? err

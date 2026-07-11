@@ -43,7 +43,7 @@ export function buildGraph() {
 
     .addEdge("aggregateData", "synthesize")
     .addEdge("synthesize", "scoreAndDecide")
-    .addEdge("synthesize", END);
+    .addEdge("scoreAndDecide", END);
 
   return graph.compile();
 }
