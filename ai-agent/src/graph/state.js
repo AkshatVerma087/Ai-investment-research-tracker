@@ -12,7 +12,7 @@ export const AgentState = Annotation.Root({
     }),
 
     rawData: Annotation({
-        reducer: (existing, update) => update ?? existing,
+        reducer: (existing, update) => ({ ...(existing ?? {}), ...(update ?? {}) }),
         default: () => ({}),
     }),
 

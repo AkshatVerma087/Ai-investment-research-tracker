@@ -1,13 +1,40 @@
-import { START, END, StateGraph } from "@langchain/langgraph";
+// graph/buildGraph.js
+//
+// This is the ONLY file that actually uses LangGraph's orchestration API.
+// Everything before this point (services, nodes) is plain JS that knows
+// nothing about graphs. Here, we register nodes and wire the edges that
+// decide execution order/parallelism/branching.
+//
+// Currently: just the resolver, wired START -> resolveCompany -> END.
+// This is deliberately the smallest possible graph, to prove the mechanism
+// works before adding the three parallel fetch nodes on top of it.
+
+import { StateGraph, START, END } from "@langchain/langgraph";
 import { AgentState } from "./state.js";
 import { resolveCompany } from "../nodes/resolveCompany.js";
+import { fetchTavily } from "../nodes/fetchTavily.js";
+import { fetchFinancials } from "../nodes/fetchFinancials.js";
+import { fetchFilings } from "../nodes/fetchFilings.js";
 
 export function buildGraph() {
-    const graph = new StateGraph(AgentState)
-        .addNode("resolveCompany", resolveCompany)
-        .addEdge(START, "resolveCompany")
-        .addEdge("resolveCompany", END);
-    
+  const graph = new StateGraph(AgentState)
+    .addNode("resolveCompany", resolveCompany)
+    .addNode("fetchTavily", fetchTavily)
+    .addNode("fetchFinancials", fetchFinancials)
+    .addNode("fetchFilings", fetchFilings)
 
-    return graph.compile();
+    .addEdge(START, "resolveCompany")
+
+    // parallel fan-out: three edges leaving the same node run concurrently
+    .addEdge("resolveCompany", "fetchTavily")
+    .addEdge("resolveCompany", "fetchFinancials")
+    .addEdge("resolveCompany", "fetchFilings")
+
+    // converge straight to END for now — aggregateData node gets inserted
+    // here in the next step, once this fan-out is verified working
+    .addEdge("fetchTavily", END)
+    .addEdge("fetchFinancials", END)
+    .addEdge("fetchFilings", END);
+
+  return graph.compile();
 }
