@@ -16,6 +16,7 @@ import { fetchTavily } from "../nodes/fetchTavily.js";
 import { fetchFinancials } from "../nodes/fetchFinancials.js";
 import { fetchFilings } from "../nodes/fetchFilings.js";
 import { aggregateData } from "../nodes/aggregateData.js";
+import { synthesize } from "../nodes/synthesize.js";
 
 export function buildGraph() {
   const graph = new StateGraph(AgentState)
@@ -24,6 +25,7 @@ export function buildGraph() {
     .addNode("fetchFinancials", fetchFinancials)
     .addNode("fetchFilings", fetchFilings)
     .addNode("aggregateData", aggregateData)
+    .addNode("synthesize", synthesize)
 
     .addEdge(START, "resolveCompany")
 
@@ -37,8 +39,8 @@ export function buildGraph() {
     .addEdge("fetchFinancials", "aggregateData")
     .addEdge("fetchFilings", "aggregateData")
 
-    .addEdge("aggregateData", END);
- 
+    .addEdge("aggregateData", "synthesize")
+    .addEdge("synthesize", END);
 
   return graph.compile();
 }
