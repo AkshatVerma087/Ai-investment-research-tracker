@@ -136,7 +136,7 @@ export async function aggregateData(state) {
       news: news.items,
       financials: financials.summary,
       filings: filings.items,
-      asOf: new Date().toISOString(),
+      asOf: new Date().toISOString().slice(0, 10),
     },
     ...(newGaps.length ? { dataGaps: newGaps } : {}),
   };
