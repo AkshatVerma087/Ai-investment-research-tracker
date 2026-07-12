@@ -1,0 +1,61 @@
+backend
+
+
+Fair — here's the requirements only, no naming or structure imposed.
+
+## Data requirements
+
+- The backend needs one function call into `ai-agent` that takes a single string (company name/input) and returns the full research result object.
+- That result object should be treated as pre-validated — don't re-check its internal shape.
+- Some fields inside that result need to be queryable/sortable/filterable later (company name, ticker, verdict, score, confidence, timestamp) — the rest doesn't need to be pulled apart, just preserved.
+- The full result needs to be stored per run, tied to whichever user triggered it.
+
+## User & auth requirements
+
+- Users need to be able to create an account and log in.
+- Passwords must never be stored in plaintext or logged anywhere.
+- There needs to be a way to identify "who is making this request" on every protected action.
+- Sessions need a way to stay valid across multiple requests without requiring login every time, and a way to expire/renew safely.
+- There needs to be a way to end a session (logout) that actually invalidates it, not just a frontend-side token deletion.
+
+## Research-run requirements
+
+- A user must be able to trigger a new research run by providing a company name.
+- The company name input needs constraints before it's used (can't be empty, can't be arbitrarily long, since it feeds directly into an LLM call that costs real API quota).
+- A user must be able to retrieve a list of their own past runs, not other users'.
+- That list should be retrievable in manageable chunks, not all at once — assume the list could grow to hundreds of entries.
+- A user must be able to filter/narrow that list by at least verdict (Invest/Pass), since that's the primary thing someone would want to review later.
+- A user must be able to retrieve one specific past run in full detail.
+- A user must be able to delete a specific past run.
+- Every read/write on a specific run must confirm it belongs to the requesting user before returning or modifying anything — never rely on the ID alone being hard to guess.
+
+## Rate/cost control requirements
+
+- Triggering a new research run costs real money/quota (LLM calls + 3 external APIs) — this action specifically needs to be throttled per user, separate from any general throttling on the rest of the API.
+- Other endpoints (auth, listing history) don't carry this cost and don't need the same restriction.
+
+## Error handling requirements
+
+- Errors coming out of `ai-agent` are already typed with a recoverable/non-recoverable distinction — the backend needs to translate that distinction into something meaningful for an HTTP response (i.e., not every internal failure should look identical to the client).
+- Validation failures, auth failures, not-found cases, and unexpected failures all need to be distinguishable from each other by the client, not just "it failed."
+- Whatever shape errors take, it needs to be the same shape everywhere, so the frontend can handle failures generically instead of per-endpoint.
+
+## Response requirements
+
+- Successful responses need a consistent shape across the whole API — decide once, apply everywhere.
+- A full research result and a list-of-past-runs entry are different sizes of the same thing — the list view should not carry the full heavy payload per entry, only enough to render a list row.
+- Auth responses must never include the password hash or any other sensitive stored field.
+
+## Cross-origin & security requirements
+
+- The frontend and backend will run on different domains — cross-origin requests need to be explicitly allowed only for that specific frontend origin, not open to everyone.
+- If session renewal relies on a cookie, that cookie needs the appropriate security flags for a cross-domain, HTTPS setup.
+- Every piece of configuration that's secret (API keys, DB connection string, signing secrets) must be loaded from environment, validated as present at startup, and never hardcoded or logged.
+
+## Non-requirements (explicitly out of scope right now)
+
+- No need for the research-run trigger to be asynchronous/queued — a direct request-response is acceptable given current expected load.
+- No need to normalize the internal research result into multiple relational tables — it's fine to store as one structured blob per run.
+- No need for third-party auth/identity providers — self-managed credentials are sufficient for now.
+
+Want me to hold off entirely now and let you come back with your own design to review, or is there a specific requirement area (e.g. auth token strategy) you want gone deeper on first?
