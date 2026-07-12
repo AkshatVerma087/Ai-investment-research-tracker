@@ -21,7 +21,16 @@ app.use(helmet());
 // CORS configuration to allow requests from the frontend and support HTTP-only cookies
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      // Allow localhost for local development
+      // Allow *.onrender.com for production deployment
+      if (!origin || origin.startsWith('http://localhost') || origin.endsWith('.onrender.com')) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true, // required for httpOnly cookies in cross-origin requests
   })
 );
