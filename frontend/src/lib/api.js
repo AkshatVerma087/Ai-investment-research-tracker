@@ -11,16 +11,16 @@ export const apiFetch = async (endpoint, options = {}) => {
     },
     credentials: 'include', // CRITICAL: ensures HTTP-only cookies are sent and received
   });
-  
+
   // If access token is expired (401), try to refresh it
-  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/google')) {
+  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/register')) {
     try {
       const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       });
-      
+
       if (refreshResponse.ok) {
         // Retry original request
         response = await fetch(url, {
@@ -44,7 +44,7 @@ export const apiFetch = async (endpoint, options = {}) => {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    
+
     // Properly extract the error message to prevent [object Object]
     let errorMsg = `API request failed with status ${response.status}`;
     if (errorData.error) {
@@ -61,9 +61,9 @@ export const apiFetch = async (endpoint, options = {}) => {
 
     throw new Error(errorMsg);
   }
-  
+
   // Handle empty responses
   if (response.status === 204) return null;
-  
+
   return response.json();
 };
