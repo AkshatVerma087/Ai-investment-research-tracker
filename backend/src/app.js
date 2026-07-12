@@ -10,6 +10,7 @@ import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
+import authRoutes from './routes/auth.routes.js';
 
 const app = express();
 
@@ -33,6 +34,10 @@ app.use(cookieParser());
 
 // HTTP request logger middleware
 app.use(pinoHttp({ logger }));
+
+// --- Routes ---
+
+app.use('/api/auth', authRoutes);
 
 // Healthcheck / Ping route.
 // Used to verify that the server is up and running.
