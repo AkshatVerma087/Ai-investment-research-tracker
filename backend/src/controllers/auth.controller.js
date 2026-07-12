@@ -25,8 +25,8 @@ const getKey = (header, callback) => {
 
 const verifyGcipToken = (token) => {
   return new Promise((resolve, reject) => {
-    const projectId = env.FIREBASE_PROJECT_ID;
-    if (!projectId) return reject(new Error('FIREBASE_PROJECT_ID is not configured in .env'));
+    const projectId = env.GCIP_PROJECT_ID;
+    if (!projectId) return reject(new Error('GCIP_PROJECT_ID is not configured in .env'));
     
     jwt.verify(token, getKey, {
       audience: projectId,
