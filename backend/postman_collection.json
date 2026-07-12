@@ -127,6 +127,35 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "Generate Research",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"companyName\": \"Tesla\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/research",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"research"
+					]
+				}
+			},
+			"response": []
 		}
 	]
 }

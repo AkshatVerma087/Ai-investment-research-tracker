@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import authRoutes from './routes/auth.routes.js';
+import researchRoutes from './routes/research.routes.js';
 
 const app = express();
 
@@ -51,6 +52,7 @@ app.use(pinoHttp({
 // --- Routes ---
 
 app.use('/api/auth', authRoutes);
+app.use('/api/research', researchRoutes);
 
 // Healthcheck / Ping route.
 // Used to verify that the server is up and running.
