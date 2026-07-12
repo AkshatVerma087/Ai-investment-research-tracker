@@ -10,8 +10,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String?  // Optional because of GCIP (Google login)
-  gcipId    String?  @unique // Google Cloud Identity Platform ID
+  password  String
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

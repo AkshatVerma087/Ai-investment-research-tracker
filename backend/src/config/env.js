@@ -17,7 +17,6 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_URL: z.string().url(),
   UPSTASH_REDIS_REST_TOKEN: z.string(),
   DATABASE_URL: z.string().optional(),
-  GCIP_PROJECT_ID: z.string().optional(),
 });
 
 // Parse the environment variables against the schema
