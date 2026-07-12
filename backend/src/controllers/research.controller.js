@@ -15,10 +15,13 @@ export const generateResearch = async (req, res, next) => {
 
     logger.info({ msg: 'Proxying research request to AI Agent Microservice', companyName });
 
-    // Ensure the AI Agent URL has a protocol (Render Internal URLs often look like 'ai-agent-xyz:10000')
+    // Ensure the AI Agent URL has a protocol and no trailing slash
     let aiAgentUrl = env.AI_AGENT_URL;
-    if (!aiAgentUrl.startsWith('http://') && !aiAgentUrl.startsWith('https://')) {
+    if (aiAgentUrl && !aiAgentUrl.startsWith('http://') && !aiAgentUrl.startsWith('https://')) {
       aiAgentUrl = `http://${aiAgentUrl}`;
+    }
+    if (aiAgentUrl && aiAgentUrl.endsWith('/')) {
+      aiAgentUrl = aiAgentUrl.slice(0, -1);
     }
 
     // Call the internal AI Agent Microservice
@@ -87,6 +90,9 @@ export const generateResearch = async (req, res, next) => {
     let finalUrl = env.AI_AGENT_URL;
     if (finalUrl && !finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
       finalUrl = `http://${finalUrl}`;
+    }
+    if (finalUrl && finalUrl.endsWith('/')) {
+      finalUrl = finalUrl.slice(0, -1);
     }
 
     return res.status(500).json({ 
