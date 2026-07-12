@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: Inter, sans-serif; }
+    .glass-input { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+    .bg-gradient-radial { background-image: radial-gradient(circle at top, rgba(255,255,255,0.08) 0%, transparent 40%); }
+  </style>
+</head>
+<body class="min-h-screen bg-[#09090b] text-[#ededed] bg-gradient-radial flex flex-col items-center relative overflow-hidden">
+  <!-- Top Nav -->
+  <div class="w-full p-6 flex justify-between items-center absolute top-0 left-0 right-0">
+    <button class="p-2 glass-input rounded-md hover:bg-white/5 transition-colors"><i data-lucide="layout-sidebar" class="w-5 h-5 text-gray-400"></i></button>
+    <button class="px-4 py-2 glass-input rounded-full text-sm font-medium flex items-center gap-2 hover:bg-white/5 transition-colors"><i data-lucide="diamond" class="w-4 h-4 text-gray-400"></i> Upgrade</button>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col justify-center items-center w-full max-w-3xl px-4 mt-20">
+    <div class="w-16 h-16 rounded-2xl glass-input flex items-center justify-center mb-6 shadow-2xl">
+      <i data-lucide="sparkles" class="w-8 h-8 text-white"></i>
+    </div>
+    <h1 class="text-4xl font-semibold mb-2">Good to See You!</h1>
+    <h2 class="text-3xl font-medium text-gray-400 mb-2">How Can I be an Assistance?</h2>
+    <p class="text-gray-500 mb-12">I'm available 24/7 for you, ask me anything.</p>
+
+    <!-- Input Section -->
+    <div class="w-full relative">
+      <div class="flex justify-between items-center text-xs text-gray-500 mb-2 px-2">
+        <span class="flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3"></i> Unlock more features with the Pro plan.</span>
+        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div> Active extensions</span>
+      </div>
+      <div class="glass-input rounded-2xl p-2 flex items-center gap-2 w-full transition-all focus-within:ring-1 focus-within:ring-white/20">
+        <button class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i data-lucide="plus" class="w-5 h-5 text-gray-400"></i></button>
+        <input type="text" placeholder="Ask anything ..." class="flex-1 bg-transparent outline-none text-white placeholder-gray-500 text-lg py-2">
+        <button class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i data-lucide="mic" class="w-5 h-5 text-gray-400"></i></button>
+        <button class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i data-lucide="arrow-up" class="w-5 h-5 text-gray-400"></i></button>
+      </div>
+    </div>
+    
+    <!-- Suggestions -->
+    <div class="flex gap-3 mt-6 flex-wrap justify-center">
+      <button class="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"><i data-lucide="help-circle" class="w-4 h-4"></i> Any advice for me?</button>
+      <button class="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"><i data-lucide="youtube" class="w-4 h-4"></i> Some youtube video idea</button>
+      <button class="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2"><i data-lucide="swords" class="w-4 h-4"></i> Life lessons from kratos</button>
+      <button class="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors">•••</button>
+    </div>
+  </div>
+  
+  <div class="absolute bottom-6 text-xs text-gray-600">Unlock new era with AetherAI. <a href="#" class="underline">share us</a></div>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

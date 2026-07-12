@@ -16,14 +16,14 @@ const testResearch = async () => {
 
   const cookie = loginRes.headers.get('set-cookie');
 
-  console.log('--- Requesting AI Research for Tesla ---');
+  console.log('--- Requesting AI Research for Microsoft ---');
   const researchRes = await fetch('http://localhost:5000/api/research', {
     method: 'POST',
     headers: { 
       'Content-Type': 'application/json',
       'Cookie': cookie
     },
-    body: JSON.stringify({ companyName: 'Tesla' })
+    body: JSON.stringify({ companyName: 'Microsoft' })
   });
 
   const researchData = await researchRes.json();

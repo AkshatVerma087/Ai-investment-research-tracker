@@ -2,7 +2,6 @@
 
 import { createContext, useState, useEffect, useContext } from 'react';
 import { apiFetch } from '@/lib/api';
-import { toast } from 'sonner';
 
 const UserContext = createContext();
 
@@ -45,10 +44,8 @@ export const UserProvider = ({ children }) => {
   const logout = async () => {
     try {
       await apiFetch('/auth/logout', { method: 'POST' });
-      toast.success('Logged out successfully');
     } catch (error) {
       console.error('Logout failed:', error);
-      toast.error('Logout failed');
     }
     setUser(null);
   };

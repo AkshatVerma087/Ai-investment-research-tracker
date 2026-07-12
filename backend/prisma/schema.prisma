@@ -23,7 +23,7 @@ model ResearchHistory {
   userId      String
   companyName String
   verdict     String
-  finalScore  Int?
+  finalScore  Float?
   rawOutput   Json     // Store the full response from AI agent
   createdAt   DateTime @default(now())
 

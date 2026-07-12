@@ -1,10 +1,10 @@
 import { TrendingUp, Minus, XCircle, Copy } from 'lucide-react';
 
 export default function ReportResult({ result }) {
-  if (!result || !result.decision) return null;
+  if (!result || !result.verdict || !result.verdict.verdict) return null;
 
-  const isInvest = result.decision.toUpperCase() === 'INVEST';
-  const isPass = result.decision.toUpperCase() === 'PASS';
+  const isInvest = result.verdict.verdict.toUpperCase() === 'INVEST';
+  const isPass = result.verdict.verdict.toUpperCase() === 'PASS';
 
   let icon = <Minus className="w-7 h-7 text-yellow-400" />;
   let colorClass = "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
@@ -17,7 +17,7 @@ export default function ReportResult({ result }) {
     colorClass = "bg-red-500/10 border-red-500/20 text-red-400";
   }
 
-  const score = result.overall_score || 0;
+  const score = result.verdict.finalScore || 0;
   
   return (
     <div className="code-block rounded-xl overflow-hidden mt-2 w-full text-left">
@@ -36,7 +36,7 @@ export default function ReportResult({ result }) {
             {icon}
           </div>
           <div>
-            <h3 className="text-3xl font-bold text-white mb-1 capitalize">{result.decision}</h3>
+            <h3 className="text-3xl font-bold text-white mb-1 capitalize">{result.verdict.verdict}</h3>
             <p className="text-sm text-gray-400">
               Final Score: <span className="text-white font-medium">{score.toFixed(1)} / 10</span> 
               {result.confidence && ` (Confidence: ${result.confidence})`}
@@ -45,16 +45,16 @@ export default function ReportResult({ result }) {
         </div>
         
         <div className="space-y-6 text-sm leading-relaxed text-gray-300">
-          {result.reasoning && (
+          {result.verdict.weightRationale && (
             <div>
               <span className="text-gray-500 text-xs block mb-2 font-medium tracking-wide uppercase">Rationale</span>
-              {result.reasoning}
+              {result.verdict.weightRationale}
             </div>
           )}
-          {result.risks && (
+          {result.verdict.counterCase && (
             <div>
               <span className="text-gray-500 text-xs block mb-2 font-medium tracking-wide uppercase">Risks & Counter-case</span>
-              {result.risks}
+              {result.verdict.counterCase}
             </div>
           )}
         </div>
@@ -62,10 +62,10 @@ export default function ReportResult({ result }) {
         {/* Detailed Scores */}
         {result.scores && (
           <div className="mt-8 pt-6 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Object.entries(result.scores).map(([key, val]) => (
+            {Object.entries(result.scores).map(([key, obj]) => (
                <div key={key} className="glass-input p-3 rounded-lg text-center">
                  <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">{key}</div>
-                 <div className="font-semibold text-white">{val}/10</div>
+                 <div className="font-semibold text-white">{obj?.value ?? obj}/10</div>
                </div>
             ))}
           </div>

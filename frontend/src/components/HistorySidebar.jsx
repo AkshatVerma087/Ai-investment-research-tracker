@@ -35,11 +35,13 @@ export default function HistorySidebar() {
       {history.map((item) => (
         <button 
           key={item.id} 
-          onClick={() => router.push(`/dashboard?id=${item.id}`)}
+          onClick={() => {
+            router.push(`/dashboard?id=${item.id}`);
+          }}
           className="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg transition-colors text-left text-sm text-gray-300 hover:text-white"
         >
           <FileText className="w-4 h-4 text-gray-500 shrink-0" />
-          <span className="truncate">{item.company}</span>
+          <span className="truncate">{item.companyName}</span>
         </button>
       ))}
     </div>

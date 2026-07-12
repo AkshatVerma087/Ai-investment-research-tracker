@@ -21,7 +21,7 @@ import { logger } from "../utils/logger.js";
 import { getFromCache, setCache } from "../services/cacheClient.js";
 
 // Fixed binary decision boundary. Change this number to retune risk appetite.
-const INVEST_THRESHOLD = 7.5;
+const INVEST_THRESHOLD = 6.5;
 const DECISION_TTL_SECONDS = 60 * 60 * 24;
 
 function computeVerdict(finalScore) {

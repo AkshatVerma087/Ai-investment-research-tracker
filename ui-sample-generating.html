@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    body { font-family: Inter, sans-serif; }
+    .glass-input { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); }
+    .bg-gradient-radial { background-image: radial-gradient(circle at top, rgba(255,255,255,0.05) 0%, transparent 40%); }
+    .chat-bubble { background: #1a1a1c; border-radius: 1.5rem 1.5rem 0.25rem 1.5rem; padding: 0.75rem 1.25rem; font-size: 0.95rem;}
+    @keyframes spin-dashed { 100% { transform: rotate(360deg); } }
+    .spinner-border { border: 2px dashed rgba(255,255,255,0.5); border-radius: 50%; width: 20px; height: 20px; animation: spin-dashed 2s linear infinite; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#09090b] text-[#ededed] bg-gradient-radial flex flex-col items-center relative overflow-hidden">
+  
+  <div class="flex-1 w-full max-w-3xl px-4 mt-24 flex flex-col justify-end pb-48">
+    <div class="flex justify-end mb-12">
+      <div class="chat-bubble shadow-lg border border-white/5">Research NVIDIA for investment</div>
+    </div>
+    
+    <div class="flex justify-center mb-8">
+      <div class="px-5 py-3 glass-input rounded-full flex items-center gap-3 text-sm text-gray-300">
+        <div class="spinner-border"></div>
+        Generating
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Section at bottom -->
+  <div class="absolute bottom-12 w-full max-w-3xl px-4 left-1/2 -translate-x-1/2">
+    <div class="w-full relative">
+      <div class="flex justify-between items-center text-xs text-gray-500 mb-2 px-2">
+        <span class="flex items-center gap-1"><i data-lucide="zap" class="w-3 h-3"></i> Unlock more features with the Pro plan.</span>
+        <span class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-500"></div> Active extensions</span>
+      </div>
+      <div class="glass-input rounded-2xl p-2 flex items-center gap-2 w-full">
+        <button class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i data-lucide="plus" class="w-5 h-5 text-gray-400"></i></button>
+        <input type="text" placeholder="Ask anything ..." class="flex-1 bg-transparent outline-none text-white placeholder-gray-500 text-lg py-2">
+        <button class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i data-lucide="mic" class="w-5 h-5 text-gray-400"></i></button>
+        <button class="p-2 hover:bg-white/10 rounded-xl transition-colors"><i data-lucide="arrow-up" class="w-5 h-5 text-gray-400"></i></button>
+      </div>
+    </div>
+  </div>
+  
+  <script>lucide.createIcons();</script>
+</body>
+</html>
