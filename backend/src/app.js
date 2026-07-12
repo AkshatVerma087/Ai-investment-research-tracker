@@ -22,10 +22,8 @@ app.use(helmet());
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      // Allow localhost for local development
-      // Allow *.onrender.com for production deployment
-      if (!origin || origin.startsWith('http://localhost') || origin.endsWith('.onrender.com')) {
+      const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
         callback(new Error('Not allowed by CORS'));

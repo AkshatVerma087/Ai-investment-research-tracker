@@ -42,6 +42,11 @@ services:
           type: web
           name: ai-agent
           envVarKey: INTERNAL_API_KEY
+      - key: FRONTEND_URL
+        fromService:
+          type: web
+          name: quantix-frontend
+          envVarKey: RENDER_EXTERNAL_URL
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
