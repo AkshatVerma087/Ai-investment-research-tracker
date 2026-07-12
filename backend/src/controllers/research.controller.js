@@ -81,12 +81,20 @@ export const generateResearch = async (req, res, next) => {
       }
     });
   } catch (error) {
-    logger.error({ msg: 'Research controller error', error: error.message, stack: error.stack });
+    logger.error({ msg: 'Research controller error', error: error.message, cause: error.cause, stack: error.stack });
+    
+    // Attempt to safely retrieve the aiAgentUrl from the scope, or fallback to the env var
+    let finalUrl = env.AI_AGENT_URL;
+    if (finalUrl && !finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+      finalUrl = `http://${finalUrl}`;
+    }
+
     return res.status(500).json({ 
       success: false, 
       message: 'Internal Server Error', 
       errorDetail: error.message,
-      targetUrl: env.AI_AGENT_URL
+      errorCause: error.cause ? error.cause.message : 'Unknown cause',
+      targetUrl: `${finalUrl}/internal/generate`
     });
   }
 };
