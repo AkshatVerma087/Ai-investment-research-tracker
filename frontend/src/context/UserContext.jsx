@@ -22,6 +22,7 @@ export const UserProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line
     fetchUser();
   }, []);
 

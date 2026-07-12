@@ -42,7 +42,7 @@ export default function Home() {
         </div>
         <h1 className="text-4xl font-semibold mb-2 text-center">Good to See You!</h1>
         <h2 className="text-3xl font-medium text-gray-400 mb-2 text-center">How Can I be of Assistance?</h2>
-        <p className="text-gray-500 mb-12 text-center">I'm available 24/7 for you, ask me anything about stocks.</p>
+        <p className="text-gray-500 mb-12 text-center">I&apos;m available 24/7 for you, ask me anything about stocks.</p>
 
         {/* Input Section - Fake for landing page, redirects to login/dashboard */}
         <div className="w-full relative cursor-text" onClick={() => router.push(user ? '/dashboard' : '/login')}>
@@ -69,7 +69,7 @@ export default function Home() {
             <HelpCircle className="w-4 h-4" /> Is Tesla a good buy right now?
           </button>
           <button className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2">
-            <Gem className="w-4 h-4" /> Analyze Apple's Q3 earnings
+            <Gem className="w-4 h-4" /> Analyze Apple&apos;s Q3 earnings
           </button>
           <button className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2">
             <Swords className="w-4 h-4" /> AMD vs Intel risks

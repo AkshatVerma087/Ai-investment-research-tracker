@@ -65,6 +65,7 @@ function DashboardContent() {
       loadHistory();
     } else if (!id) {
       // Clear state if we navigate back to the home route without an ID
+      // eslint-disable-next-line
       setResult(null);
       setCurrentQuery('');
       setCurrentHistoryId(null);
@@ -150,7 +151,7 @@ function DashboardContent() {
           </motion.div>
           <motion.h1 variants={homeItemVariants} className="text-4xl font-semibold mb-2 text-center">Good to See You!</motion.h1>
           <motion.h2 variants={homeItemVariants} className="text-3xl font-medium text-gray-400 mb-2 text-center">How Can I be an Assistance?</motion.h2>
-          <motion.p variants={homeItemVariants} className="text-gray-500 mb-12 text-center">I'm available 24/7 for you, ask me anything.</motion.p>
+          <motion.p variants={homeItemVariants} className="text-gray-500 mb-12 text-center">I&apos;m available 24/7 for you, ask me anything.</motion.p>
 
           <motion.div variants={homeItemVariants} className="w-full">
             {renderInputArea()}
@@ -224,7 +225,7 @@ function DashboardContent() {
                        <div className="chat-bubble shadow-lg border border-white/5 bg-[#131315]">{result.message}</div>
                      ) : (
                        <>
-                         <p className="leading-relaxed">Here's a comprehensive AI analysis of {currentQuery} based on real-time financial data, filings, and market sentiment:</p>
+                         <p className="leading-relaxed">Here&apos;s a comprehensive AI analysis of {currentQuery} based on real-time financial data, filings, and market sentiment:</p>
                          <ReportResult result={result} />
                        </>
                      )}
