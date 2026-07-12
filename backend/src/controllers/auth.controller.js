@@ -208,6 +208,6 @@ export const googleAuth = async (req, res, next) => {
     });
   } catch (error) {
     logger.error({ msg: 'Google OAuth error', error: error.message });
-    res.status(401).json({ success: false, message: 'Invalid Google token' });
+    res.status(401).json({ success: false, message: 'Invalid Google token', errorDetail: error.message });
   }
 };
