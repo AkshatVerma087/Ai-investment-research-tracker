@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?  // Optional because of GCIP (Google login)
+  gcipId    String?  @unique // Google Cloud Identity Platform ID
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  researchHistories ResearchHistory[]
+}
+
+model ResearchHistory {
+  id          String   @id @default(uuid())
+  userId      String
+  companyName String
+  verdict     String
+  finalScore  Int?
+  rawOutput   Json     // Store the full response from AI agent
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
