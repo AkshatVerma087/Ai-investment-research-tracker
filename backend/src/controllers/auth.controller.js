@@ -13,8 +13,8 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Helper to set standard cookie options
 const getCookieOptions = (maxAgeMs) => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: true, // Must be true when sameSite is 'none'
+  sameSite: 'none', // Required for cross-site cookies (frontend.onrender.com -> backend.onrender.com)
   maxAge: maxAgeMs,
 });
 
