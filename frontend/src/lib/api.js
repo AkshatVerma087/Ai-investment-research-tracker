@@ -13,7 +13,7 @@ export const apiFetch = async (endpoint, options = {}) => {
   });
   
   // If access token is expired (401), try to refresh it
-  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/register')) {
+  if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/refresh') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/google')) {
     try {
       const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
         method: 'POST',
