@@ -2,10 +2,10 @@ import { Ratelimit } from '@upstash/ratelimit';
 import { redis } from '../utils/redis.js';
 import { logger } from '../utils/logger.js';
 
-// Create a new ratelimiter, that allows 5 requests per 1 minute
+// Create a new ratelimiter, that allows 20 requests per 1 day
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(5, '1 m'),
+  limiter: Ratelimit.slidingWindow(20, '1 d'),
   analytics: true,
 });
 
