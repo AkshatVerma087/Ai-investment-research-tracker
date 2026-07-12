@@ -22,7 +22,12 @@ app.use(helmet());
 app.use(
   cors({
     origin: function (origin, callback) {
-      const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000').split(',');
+      // Explicitly allowing localhost and your exact live Render URL
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'https://quantix-frontend-21jy.onrender.com'
+      ];
+      
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
