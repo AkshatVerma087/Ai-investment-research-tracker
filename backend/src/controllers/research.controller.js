@@ -15,8 +15,14 @@ export const generateResearch = async (req, res, next) => {
 
     logger.info({ msg: 'Proxying research request to AI Agent Microservice', companyName });
 
+    // Ensure the AI Agent URL has a protocol (Render Internal URLs often look like 'ai-agent-xyz:10000')
+    let aiAgentUrl = env.AI_AGENT_URL;
+    if (!aiAgentUrl.startsWith('http://') && !aiAgentUrl.startsWith('https://')) {
+      aiAgentUrl = `http://${aiAgentUrl}`;
+    }
+
     // Call the internal AI Agent Microservice
-    const aiResponse = await fetch(`${env.AI_AGENT_URL}/internal/generate`, {
+    const aiResponse = await fetch(`${aiAgentUrl}/internal/generate`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -80,7 +86,7 @@ export const generateResearch = async (req, res, next) => {
       success: false, 
       message: 'Internal Server Error', 
       errorDetail: error.message,
-      targetUrl: `${env.AI_AGENT_URL}/internal/generate`
+      targetUrl: env.AI_AGENT_URL
     });
   }
 };
