@@ -5,23 +5,23 @@ import { useUser } from '@/context/UserContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const { register } = useUser();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     try {
       await register(name, email, password);
+      toast.success('Account created successfully!');
       router.push('/dashboard');
     } catch (err) {
-      setError(err.message || 'Registration failed');
+      toast.error(err.message || 'Registration failed');
     }
   };
 
@@ -35,8 +35,6 @@ export default function RegisterPage() {
       <div className="glass-input p-8 rounded-3xl w-full max-w-md shadow-2xl relative">
         <h2 className="text-3xl font-bold text-white mb-2">Create an account</h2>
         <p className="text-gray-400 mb-8">Start your AI investment research journey today.</p>
-        
-        {error && <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-lg mb-6 text-sm">{error}</div>}
         
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div>

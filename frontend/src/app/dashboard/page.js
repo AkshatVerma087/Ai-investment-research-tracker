@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/api';
 import { Zap, Plus, Mic, ArrowUp } from 'lucide-react';
 import ReportResult from '@/components/ReportResult';
 import { useSearchParams } from 'next/navigation';
+import { toast } from 'sonner';
 
 function DashboardContent() {
   const [query, setQuery] = useState('');
@@ -52,7 +53,7 @@ function DashboardContent() {
       setResult(data);
     } catch (error) {
       console.error(error);
-      alert('Error generating research: ' + error.message);
+      toast.error('Error generating research: ' + error.message);
     } finally {
       setIsLoading(false);
     }
