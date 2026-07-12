@@ -3,6 +3,7 @@ version: "1"
 services:
   - type: web
     name: ai-agent
+    plan: free
     env: docker
     dockerContext: ./ai-agent
     dockerfilePath: ./ai-agent/Dockerfile
@@ -22,6 +23,7 @@ services:
 
   - type: web
     name: quantix-backend
+    plan: free
     env: docker
     dockerContext: ./backend
     dockerfilePath: ./backend/Dockerfile
@@ -55,6 +57,7 @@ services:
 
   - type: web
     name: quantix-frontend
+    plan: free
     env: docker
     dockerContext: ./frontend
     dockerfilePath: ./frontend/Dockerfile
