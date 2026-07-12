@@ -1,12 +1,43 @@
 // Request handlers for Authentication routes.
-// Manages GCIP login, token refresh, and logout using httpOnly cookies.
-
 import { PrismaClient } from '@prisma/client';
-import { getAuth } from 'firebase-admin/auth';
+import jwt from 'jsonwebtoken';
+import jwksClient from 'jwks-rsa';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../services/auth.service.js';
 import { logger } from '../utils/logger.js';
+import { env } from '../config/env.js';
 
 const prisma = new PrismaClient();
+
+// Setup JWKS client to fetch Google's public keys for GCIP
+const client = jwksClient({
+  jwksUri: 'https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com',
+  cache: true,
+  rateLimit: true,
+});
+
+const getKey = (header, callback) => {
+  client.getSigningKey(header.kid, (err, key) => {
+    if (err) return callback(err);
+    const signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
+};
+
+const verifyGcipToken = (token) => {
+  return new Promise((resolve, reject) => {
+    const projectId = env.FIREBASE_PROJECT_ID;
+    if (!projectId) return reject(new Error('FIREBASE_PROJECT_ID is not configured in .env'));
+    
+    jwt.verify(token, getKey, {
+      audience: projectId,
+      issuer: `https://securetoken.google.com/${projectId}`,
+      algorithms: ['RS256']
+    }, (err, decoded) => {
+      if (err) return reject(err);
+      resolve(decoded);
+    });
+  });
+};
 
 // Helper to set standard cookie options
 const getCookieOptions = (maxAgeMs) => ({
@@ -30,16 +61,16 @@ export const gcipLogin = async (req, res, next) => {
     const { idToken } = req.body;
     if (!idToken) return res.status(400).json({ success: false, message: 'idToken is required' });
 
-    // Verify token with Firebase Admin SDK
+    // Verify token directly using Google's public keys (No Firebase SDK needed)
     let decodedToken;
     try {
-      decodedToken = await getAuth().verifyIdToken(idToken);
+      decodedToken = await verifyGcipToken(idToken);
     } catch (err) {
       logger.warn({ msg: 'GCIP token verification failed', error: err.message });
       return res.status(401).json({ success: false, message: 'Invalid GCIP token' });
     }
 
-    const { uid: gcipId, email, name } = decodedToken;
+    const { user_id: gcipId, email, name } = decodedToken;
 
     // Find or create user in our DB
     let user = await prisma.user.findUnique({ where: { email } });
