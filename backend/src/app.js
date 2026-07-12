@@ -33,7 +33,20 @@ app.use(express.urlencoded({ extended: true })); // Parse URL-encoded payloads
 app.use(cookieParser());
 
 // HTTP request logger middleware
-app.use(pinoHttp({ logger }));
+app.use(pinoHttp({ 
+  logger,
+  // Use custom serializers to strip out sensitive headers (like cookies/tokens) and keep logs clean
+  serializers: {
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      remoteAddress: req.remoteAddress,
+    }),
+    res: (res) => ({
+      statusCode: res.statusCode,
+    })
+  }
+}));
 
 // --- Routes ---
 
