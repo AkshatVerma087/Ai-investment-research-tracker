@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { env } from '../config/env.js';
 import { logger } from '../utils/logger.js';
+import { redis } from '../utils/redis.js';
 
 const prisma = new PrismaClient();
 
@@ -48,7 +49,19 @@ export const generateResearch = async (req, res, next) => {
       }
     });
 
-    logger.info({ msg: 'Research generated and saved', historyId: history.id });
+    // Invalidate the user's history cache since there's a new entry
+    const cachePattern = `researchHistory:${req.user.id}:*`;
+    let cursor = '0';
+    do {
+      const scanResult = await redis.scan(cursor, { match: cachePattern, count: 100 });
+      cursor = scanResult[0];
+      const keys = scanResult[1];
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
+    } while (cursor !== '0');
+
+    logger.info({ msg: 'Research generated, saved, and cache invalidated', historyId: history.id });
 
     return res.status(200).json({
       success: true,
@@ -63,6 +76,97 @@ export const generateResearch = async (req, res, next) => {
     });
   } catch (error) {
     logger.error({ msg: 'Research controller error', error: error.message });
+    next(error);
+  }
+};
+
+// GET /api/research/history
+export const getResearchHistory = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const userId = req.user.id;
+
+    const cacheKey = `researchHistory:${userId}:page:${page}:limit:${limit}`;
+    
+    // Check Redis Cache
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      logger.info({ msg: 'Serving research history from cache', userId, page });
+      return res.status(200).json(cachedData);
+    }
+
+    // Fetch from Postgres (exclude rawOutput to save bandwidth on lists)
+    const [history, total] = await Promise.all([
+      prisma.researchHistory.findMany({
+        where: { userId },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          companyName: true,
+          verdict: true,
+          finalScore: true,
+          createdAt: true
+        }
+      }),
+      prisma.researchHistory.count({ where: { userId } })
+    ]);
+
+    const responseData = {
+      success: true,
+      data: history,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    };
+
+    // Cache the result in Redis for 5 minutes
+    await redis.set(cacheKey, responseData, { ex: 300 });
+
+    logger.info({ msg: 'Fetched research history from DB', userId, page });
+    return res.status(200).json(responseData);
+  } catch (error) {
+    logger.error({ msg: 'Get history error', error: error.message });
+    next(error);
+  }
+};
+
+// GET /api/research/history/:id
+export const getResearchById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const cacheKey = `researchDetail:${id}:${userId}`;
+
+    // Check Redis Cache
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+      logger.info({ msg: 'Serving research detail from cache', historyId: id });
+      return res.status(200).json({ success: true, data: cachedData });
+    }
+
+    const history = await prisma.researchHistory.findFirst({
+      where: { id, userId }
+    });
+
+    if (!history) {
+      return res.status(404).json({ success: false, message: 'Research not found' });
+    }
+
+    // Cache for 10 minutes
+    await redis.set(cacheKey, history, { ex: 600 });
+
+    logger.info({ msg: 'Fetched research detail from DB', historyId: id });
+    return res.status(200).json({ success: true, data: history });
+  } catch (error) {
+    logger.error({ msg: 'Get research by id error', error: error.message });
     next(error);
   }
 };
