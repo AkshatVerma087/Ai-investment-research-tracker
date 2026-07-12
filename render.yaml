@@ -1,0 +1,74 @@
+version: "1"
+
+services:
+  - type: web
+    name: ai-agent
+    env: docker
+    dockerContext: ./ai-agent
+    dockerfilePath: ./ai-agent/Dockerfile
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: FMP_API_KEY
+        sync: false
+      - key: INTERNAL_API_KEY
+        generateValue: true
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+
+  - type: web
+    name: quantix-backend
+    env: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: quantix-db
+          property: connectionString
+      - key: AI_AGENT_URL
+        fromService:
+          type: web
+          name: ai-agent
+          property: hostport
+      - key: INTERNAL_API_KEY
+        fromService:
+          type: web
+          name: ai-agent
+          envVarKey: INTERNAL_API_KEY
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false
+
+  - type: web
+    name: quantix-frontend
+    env: docker
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: quantix-backend
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_GOOGLE_CLIENT_ID
+        sync: false
+
+databases:
+  - name: quantix-db
+    databaseName: quantix
+    user: quantix_user
+    plan: free

@@ -1,0 +1,61 @@
+name: Quantix CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: |
+          frontend/package-lock.json
+          backend/package-lock.json
+          ai-agent/package-lock.json
+
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Lint Frontend
+      working-directory: ./frontend
+      run: npm run lint
+
+    - name: Build Frontend
+      working-directory: ./frontend
+      # Dummy environment variables so the build succeeds
+      env:
+        NEXT_PUBLIC_API_URL: http://localhost:5000
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: dummy_id
+      run: npm run build
+
+    - name: Install Backend Dependencies
+      working-directory: ./backend
+      run: npm ci
+
+    - name: Lint Backend
+      working-directory: ./backend
+      run: npm run lint
+
+    - name: Install AI-Agent Dependencies
+      working-directory: ./ai-agent
+      run: npm ci
+
+    - name: Lint AI-Agent
+      working-directory: ./ai-agent
+      # Assuming we might add a lint script later, run it if it exists
+      run: npm run lint --if-present
