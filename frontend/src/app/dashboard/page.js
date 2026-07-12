@@ -1,15 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { apiFetch } from '@/lib/api';
 import { Zap, Plus, Mic, ArrowUp } from 'lucide-react';
-// We will import ReportResult later when we build it
+import ReportResult from '@/components/ReportResult';
+import { useSearchParams } from 'next/navigation';
 
-export default function Dashboard() {
+function DashboardContent() {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [currentQuery, setCurrentQuery] = useState('');
+  
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id');
+
+  useEffect(() => {
+    if (id) {
+      const loadHistory = async () => {
+        setIsLoading(true);
+        try {
+          const data = await apiFetch(`/research/history/${id}`);
+          if (data && data.data) {
+            setResult(data.data.result);
+            setCurrentQuery(data.data.company);
+          }
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadHistory();
+    }
+  }, [id]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -65,13 +89,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Result Area - We will replace this with ReportResult in Phase 6.5 */}
+        {/* Result Area */}
         {result && !isLoading && (
           <div className="w-full max-w-3xl flex flex-col gap-4 text-gray-300">
              <p className="leading-relaxed">Here is the research report for {currentQuery}:</p>
-             <pre className="p-4 bg-[#131315] border border-white/5 rounded-xl overflow-x-auto text-xs text-gray-400">
-               {JSON.stringify(result, null, 2)}
-             </pre>
+             <ReportResult result={result} />
           </div>
         )}
 
@@ -102,5 +124,13 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="flex-1 flex justify-center items-center"><div className="spinner-border"></div></div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }

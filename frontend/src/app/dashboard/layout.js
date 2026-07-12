@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { LayoutSidebar, Sparkles } from 'lucide-react';
 import Link from 'next/link';
+import HistorySidebar from '@/components/HistorySidebar';
 
 export default function DashboardLayout({ children }) {
   const { user, loading, logout } = useUser();
@@ -33,7 +34,7 @@ export default function DashboardLayout({ children }) {
            AetherAI
         </div>
         <div className="flex-1 overflow-y-auto p-4" id="history-sidebar-container">
-          {/* History goes here */}
+          <HistorySidebar />
         </div>
         <div className="p-4 border-t border-white/5 flex items-center justify-between">
            <div className="text-sm truncate mr-2">{user.email}</div>
