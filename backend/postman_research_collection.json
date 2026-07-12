@@ -1,0 +1,97 @@
+{
+	"info": {
+		"_postman_id": "d2e2b658-6e32-5g22-9f6g-2504c9f89g02",
+		"name": "Investment Tracker AI Research",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Generate Research",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"companyName\": \"Tesla\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/research",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"research"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Research History",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/research/history?page=1&limit=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"research",
+						"history"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Specific Research by ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/research/history/:id",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"research",
+						"history",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": "ENTER_YOUR_ID_HERE"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
