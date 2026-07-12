@@ -75,8 +75,13 @@ export const generateResearch = async (req, res, next) => {
       }
     });
   } catch (error) {
-    logger.error({ msg: 'Research controller error', error: error.message });
-    next(error);
+    logger.error({ msg: 'Research controller error', error: error.message, stack: error.stack });
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Internal Server Error', 
+      errorDetail: error.message,
+      targetUrl: `${env.AI_AGENT_URL}/internal/generate`
+    });
   }
 };
 
