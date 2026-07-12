@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { apiFetch } from '@/lib/api';
-import { Zap, Plus, Mic, ArrowUp, Sparkles, HelpCircle, PlayCircle, Swords } from 'lucide-react';
+import { Zap, Plus, Mic, ArrowUp, Sparkles, TrendingUp, PlayCircle, Swords } from 'lucide-react';
 import ReportResult from '@/components/ReportResult';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,18 +23,32 @@ const homeItemVariants = {
 
 function DashboardContent() {
   const [query, setQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingHistory, setIsFetchingHistory] = useState(false);
   const [currentQuery, setCurrentQuery] = useState('');
   const [currentHistoryId, setCurrentHistoryId] = useState(null);
+  const pendingIdRef = useRef(null);
   
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = searchParams.get('id');
 
   useEffect(() => {
+    // Prevent fetching old history when we are generating a new one
+    if (isLoading) return;
+
+    // If the URL id matches our pending navigation id, the router has caught up
+    if (id && id === pendingIdRef.current) {
+      pendingIdRef.current = null;
+    }
+
+    // If we are waiting for the router to push a new ID, ignore the stale URL id
+    if (pendingIdRef.current) return;
+
     if (id && id !== currentHistoryId) {
       const loadHistory = async () => {
-        setIsLoading(true);
+        setIsFetchingHistory(true);
         try {
           const data = await apiFetch(`/research/history/${id}`);
           if (data && data.data) {
@@ -45,7 +59,7 @@ function DashboardContent() {
         } catch (e) {
           console.error(e);
         } finally {
-          setIsLoading(false);
+          setIsFetchingHistory(false);
         }
       };
       loadHistory();
@@ -55,7 +69,7 @@ function DashboardContent() {
       setCurrentQuery('');
       setCurrentHistoryId(null);
     }
-  }, [id, currentHistoryId]);
+  }, [id, currentHistoryId, isLoading]);
 
   const submitQuery = async (searchQuery) => {
     if (!searchQuery.trim() || isLoading) return;
@@ -64,7 +78,7 @@ function DashboardContent() {
     setCurrentQuery(searchQuery);
     setQuery('');
     setResult(null);
-    setCurrentHistoryId(null);
+    setCurrentHistoryId('generating');
     
     try {
       const data = await apiFetch('/research', {
@@ -74,11 +88,15 @@ function DashboardContent() {
       if (data && data.data) {
         setResult(data.data.rawOutput);
         setCurrentHistoryId(data.data.historyId);
-        window.history.pushState(null, '', `/dashboard?id=${data.data.historyId}`);
+        
+        // Mark this ID as pending so the useEffect ignores stale URL state while routing
+        pendingIdRef.current = data.data.historyId;
+        router.push(`/dashboard?id=${data.data.historyId}`);
       }
     } catch (error) {
       console.error(error);
       toast.error('Error generating research: ' + error.message);
+      setCurrentHistoryId(null);
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +107,7 @@ function DashboardContent() {
     submitQuery(query);
   };
 
-  const isHome = !currentQuery && !isLoading && !result;
+  const isHome = !currentQuery && !isLoading && !isFetchingHistory && !result;
 
   const renderInputArea = () => (
     <div className="w-full relative">
@@ -106,10 +124,10 @@ function DashboardContent() {
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Ask anything ..." 
           className="flex-1 bg-transparent outline-none text-white placeholder-gray-500 text-lg py-2" 
-          disabled={isLoading}
+          disabled={isLoading || isFetchingHistory}
         />
         <button type="button" className="p-2 hover:bg-white/10 rounded-xl transition-colors"><Mic className="w-5 h-5 text-gray-400" /></button>
-        <button type="submit" disabled={isLoading || !query.trim()} className="p-2 hover:bg-white/10 disabled:opacity-50 rounded-xl transition-colors">
+        <button type="submit" disabled={isLoading || isFetchingHistory || !query.trim()} className="p-2 hover:bg-white/10 disabled:opacity-50 rounded-xl transition-colors">
            <ArrowUp className="w-5 h-5 text-gray-400 hover:text-white" />
         </button>
       </form>
@@ -139,14 +157,14 @@ function DashboardContent() {
           </motion.div>
 
           <motion.div variants={homeItemVariants} className="flex gap-3 mt-6 flex-wrap justify-center">
-            <button type="button" onClick={() => submitQuery('Any advice for me?')} className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 shadow-lg"><HelpCircle className="w-4 h-4" /> Any advice for me?</button>
+            <button type="button" onClick={() => submitQuery('Analyze Microsoft stock')} className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 shadow-lg"><TrendingUp className="w-4 h-4" /> Analyze Microsoft</button>
             <button type="button" onClick={() => submitQuery('Research Apple for investment')} className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 shadow-lg"><PlayCircle className="w-4 h-4" /> Research Apple</button>
             <button type="button" onClick={() => submitQuery('Research TSLA for investment')} className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-2 shadow-lg"><Swords className="w-4 h-4" /> Research TSLA</button>
             <button type="button" className="px-4 py-2 glass-input rounded-full text-sm text-gray-400 hover:text-white transition-colors">•••</button>
           </motion.div>
           
-          <motion.div variants={homeItemVariants} className="absolute bottom-6 text-xs text-gray-600 text-center">
-            Unlock new era with AetherAI. <a href="#" className="underline hover:text-white">share us</a>
+          <motion.div variants={homeItemVariants} className="mt-8 text-center text-xs text-gray-500">
+            Unlock new era with Quantix. <a href="#" className="underline hover:text-white">share us</a>
           </motion.div>
         </motion.div>
       ) : (
@@ -169,7 +187,7 @@ function DashboardContent() {
                   </motion.div>
                 )}
 
-                {isLoading && (
+                {(isLoading || isFetchingHistory) && (
                   <motion.div 
                     key="loading"
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -179,22 +197,37 @@ function DashboardContent() {
                     className="w-full flex justify-center mb-8"
                   >
                     <div className="px-5 py-2 glass-input rounded-full flex items-center gap-3 text-sm text-gray-300 shadow-lg">
-                      <Sparkles className="w-4 h-4 animate-pulse text-white" />
-                      Generating
+                      {isLoading ? (
+                        <>
+                          <Sparkles className="w-4 h-4 animate-pulse text-white" />
+                          Generating
+                        </>
+                      ) : (
+                        <>
+                          <div className="spinner-border w-3 h-3 border-gray-400"></div>
+                          Loading...
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}
 
-                {result && !isLoading && (
+                {result && !isLoading && !isFetchingHistory && (
                   <motion.div 
                     key="result"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, ease: "easeOut" }}
-                    className="flex flex-col gap-4 text-gray-300"
+                    className={`flex ${result.message ? 'justify-start' : 'flex-col gap-4'} mb-8 text-gray-300`}
                   >
-                     <p className="leading-relaxed">Here's a comprehensive AI analysis of {currentQuery} based on real-time financial data, filings, and market sentiment:</p>
-                     <ReportResult result={result} />
+                     {result.message ? (
+                       <div className="chat-bubble shadow-lg border border-white/5 bg-[#131315]">{result.message}</div>
+                     ) : (
+                       <>
+                         <p className="leading-relaxed">Here's a comprehensive AI analysis of {currentQuery} based on real-time financial data, filings, and market sentiment:</p>
+                         <ReportResult result={result} />
+                       </>
+                     )}
                   </motion.div>
                 )}
               </AnimatePresence>

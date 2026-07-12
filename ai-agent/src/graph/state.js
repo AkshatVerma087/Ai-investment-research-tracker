@@ -21,6 +21,16 @@ export const AgentState = Annotation.Root({
         default: () => null 
     }),
 
+    intent: Annotation({
+        reducer: (existing, update) => update ?? existing,
+        default: () => null
+    }),
+
+    message: Annotation({
+        reducer: (existing, update) => update ?? existing,
+        default: () => null
+    }),
+
     synthesis: Annotation({
         reducer: (existing, update) => update ?? existing,
         default: () => null 

@@ -26,11 +26,27 @@ export const UserProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const data = await apiFetch('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    });
-    setUser(data.user);
+    try {
+      const data = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
+      setUser(data.user);
+    } catch (err) {
+      throw new Error(err.message || 'Login failed');
+    }
+  };
+
+  const loginWithGoogle = async (token) => {
+    try {
+      const data = await apiFetch('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+      setUser(data.user);
+    } catch (err) {
+      throw new Error(err.message || 'Google Login failed');
+    }
   };
 
   const register = async (name, email, password) => {
@@ -51,7 +67,7 @@ export const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, login, register, logout, fetchUser }}>
+    <UserContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, fetchUser }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,7 +1,7 @@
 // Express router mapping endpoints to auth controller methods.
 
 import { Router } from 'express';
-import { register, login, refresh, logout } from '../controllers/auth.controller.js';
+import { register, login, refresh, logout, googleAuth } from '../controllers/auth.controller.js';
 import { requireAuth } from '../middlewares/auth.js';
 
 const router = Router();
@@ -13,6 +13,9 @@ router.post('/register', register);
 // POST /api/auth/login
 // Expects { email, password } in body
 router.post('/login', login);
+
+// POST /api/auth/google
+router.post('/google', googleAuth);
 
 // POST /api/auth/refresh
 // Reads httpOnly 'refreshToken' cookie to issue a new accessToken

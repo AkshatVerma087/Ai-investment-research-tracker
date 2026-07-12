@@ -19,8 +19,11 @@ import { aggregateData } from "../nodes/aggregateData.js";
 import { synthesize } from "../nodes/synthesize.js";
 import { scoreAndDecide } from "../nodes/scoreAndDecide.js";
 
+import { intentRouter } from "../nodes/intentRouter.js";
+
 export function buildGraph() {
   const graph = new StateGraph(AgentState)
+    .addNode("intentRouter", intentRouter)
     .addNode("resolveCompany", resolveCompany)
     .addNode("fetchTavily", fetchTavily)
     .addNode("fetchFinancials", fetchFinancials)
@@ -29,7 +32,12 @@ export function buildGraph() {
     .addNode("synthesize", synthesize)
     .addNode("scoreAndDecide", scoreAndDecide)
 
-    .addEdge(START, "resolveCompany")
+    .addEdge(START, "intentRouter")
+    
+    .addConditionalEdges("intentRouter", (state) => {
+        if (state.intent !== "INVESTMENT") return END;
+        return "resolveCompany";
+    })
 
     // parallel fan-out: three edges leaving the same node run concurrently
     .addEdge("resolveCompany", "fetchTavily")

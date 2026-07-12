@@ -15,7 +15,7 @@ export default function Home() {
       <div className="w-full p-6 flex justify-between items-center absolute top-0 left-0 right-0 z-10">
         <div className="text-xl font-bold flex items-center gap-2">
            <Sparkles className="w-5 h-5 text-white" />
-           AetherAI
+           Quantix
         </div>
         <div className="flex gap-4 items-center">
           {user ? (
@@ -77,7 +77,7 @@ export default function Home() {
         </div>
       </div>
       
-      <div className="absolute bottom-6 text-xs text-gray-600 z-10">Unlock new era with AetherAI. <Link href="#" className="underline">share us</Link></div>
+      <div className="absolute bottom-6 text-xs text-gray-600 z-10">Unlock new era with Quantix. <Link href="#" className="underline">share us</Link></div>
     </div>
   );
 }

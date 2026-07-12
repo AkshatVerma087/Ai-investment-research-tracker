@@ -5,8 +5,10 @@ import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../services/auth.service.js';
 import { logger } from '../utils/logger.js';
+import { OAuth2Client } from 'google-auth-library';
 
 const prisma = new PrismaClient();
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Helper to set standard cookie options
 const getCookieOptions = (maxAgeMs) => ({
@@ -28,6 +30,14 @@ export const register = async (req, res, next) => {
     const { email, password, name } = req.body;
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required' });
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.' 
+      });
     }
 
     // Check if user already exists
@@ -143,4 +153,61 @@ export const logout = (req, res) => {
   res.clearCookie('accessToken');
   res.clearCookie('refreshToken');
   return res.status(200).json({ success: true, message: 'Logged out successfully' });
+};
+
+// POST /api/auth/google
+export const googleAuth = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'No Google token provided' });
+    }
+
+    // Verify Google ID token
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Google account has no email' });
+    }
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({ where: { email } });
+    
+    // If not, auto-register them
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || null,
+          password: null, // OAuth users don't have passwords
+        }
+      });
+      logger.info({ msg: 'New user registered via Google OAuth', userId: user.id });
+    }
+
+    // Generate JWTs
+    const accessToken = generateAccessToken(user.id);
+    const refreshToken = generateRefreshToken(user.id);
+    const accessExpiry = parseMs(process.env.JWT_ACCESS_EXPIRES_IN || '15m');
+    const refreshExpiry = parseMs(process.env.JWT_REFRESH_EXPIRES_IN || '7d');
+
+    // Set cookies
+    res.cookie('accessToken', accessToken, getCookieOptions(accessExpiry));
+    res.cookie('refreshToken', refreshToken, getCookieOptions(refreshExpiry));
+
+    return res.status(200).json({
+      success: true,
+      message: 'Google login successful',
+      user: { id: user.id, email: user.email, name: user.name },
+    });
+  } catch (error) {
+    logger.error({ msg: 'Google OAuth error', error: error.message });
+    res.status(401).json({ success: false, message: 'Invalid Google token' });
+  }
 };

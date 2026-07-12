@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { PanelLeft, Diamond, Sparkles, X } from 'lucide-react';
 import HistorySidebar from '@/components/HistorySidebar';
+import LogoutModal from '@/components/LogoutModal';
 
 export default function DashboardLayout({ children }) {
   const { user, loading, logout } = useUser();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -37,7 +39,10 @@ export default function DashboardLayout({ children }) {
         </button>
         
         <div className="flex gap-4 pointer-events-auto">
-          <button onClick={logout} className="px-4 py-2 glass-input rounded-full text-sm font-medium flex items-center hover:bg-white/5 transition-colors text-gray-400">
+          <button 
+            onClick={() => setShowLogoutConfirm(true)} 
+            className="px-4 py-2 glass-input rounded-full text-sm font-medium flex items-center hover:bg-white/5 transition-colors text-gray-400"
+          >
              Logout
           </button>
           <button className="px-4 py-2 glass-input rounded-full text-sm font-medium flex items-center gap-2 hover:bg-white/5 transition-colors">
@@ -57,7 +62,7 @@ export default function DashboardLayout({ children }) {
             <div className="p-6 font-bold flex items-center justify-between border-b border-white/5">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-white" />
-                AetherAI
+                Quantix
               </div>
               <button onClick={() => setSidebarOpen(false)}><X className="w-5 h-5 text-gray-400" /></button>
             </div>
@@ -66,6 +71,12 @@ export default function DashboardLayout({ children }) {
             </div>
          </div>
       </div>
+
+      <LogoutModal 
+        isOpen={showLogoutConfirm} 
+        onClose={() => setShowLogoutConfirm(false)} 
+        onConfirm={logout} 
+      />
 
       {/* Main Content */}
       <div className="flex-1 w-full flex flex-col relative min-h-0 overflow-hidden">
